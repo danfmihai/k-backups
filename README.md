@@ -16,7 +16,7 @@ or
 kubectl get pods -n kube-system
 kubectl describe pod -n kube-system backup
 kubestl describe pod -n kube-system etcd-cleanup
-
+```
 
 To change configuration do edit the cronjob or make changes to definiton files and apply it.
 ```
