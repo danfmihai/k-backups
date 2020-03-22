@@ -14,15 +14,17 @@ kubectl describe cronjobs -n kube-system backup
 kubectl describe cronjobs -n kube-system etcd-cleanup
 or
 kubectl get pods -n kube-system
-kubectl describe pod -n kube-system backup
-kubestl describe pod -n kube-system etcd-cleanup
+kubectl describe pod -n kube-system backup-1584900000-l8n25
+kubestl describe pod -n kube-system etcd-cleanup-1584890880-trdp7
 ```
 
 To change configuration do edit the cronjob or make changes to definiton files and apply it.
 ```
 kubectl edit cronjob -n kube-system etcd-cleanup
 kubectl edit cronjob -n kube-system backup
-or
+```
+or, change yaml configuration file and apply it:
+```
 kubectl apply -f etcd_backup.yaml
 kubectl apply -f etcd_cleanup.yaml
 ```
