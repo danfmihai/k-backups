@@ -1,0 +1,37 @@
+#######
+# This Job will delete older ETCD backups, see line 16 for more details
+#######
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: etcd-cleanup
+  namespace: kube-system
+spec:
+  schedule: "0 1 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: etcd-cleanup
+            image: busybox
+            args: ["/bin/sh", "-c", "for n in $(find /nfs/shares/ETCD_BACKUPS/dev_ETCD -mtime +15 -print); do rm -f $n ;done"] 
+            volumeMounts:
+              - mountPath: /etc/localtime:ro 
+                name: date-vol
+              - mountPath: /nfs/shares/ETCD_BACKUPS/dev_ETCD
+                name: etcd-bakups
+          tolerations:
+          - effect: NoSchedule
+            operator: Exists
+          restartPolicy: OnFailure
+          nodeSelector:
+            kubernetes.io/hostname: dev-master-001
+          volumes:
+          - name: date-vol
+            hostPath:
+                path: /etc/localtime
+          - name: etcd-bakups
+            hostPath:
+              path: /nfs/shares/ETCD_BACKUPS/dev_ETCD
+              type: DirectoryOrCreate
