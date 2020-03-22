@@ -1,0 +1,101 @@
+#######
+# This job is backing up ETCD database, and stored on a persistent NFS volume.
+#######
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: backup
+  namespace: kube-system
+spec:
+  # activeDeadlineSeconds: 100
+  schedule: "0 */2 * * *"         #interval to run, this case every 2 hours
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 20
+      template:
+        spec:
+          containers:
+          - name: backup
+            # Same image as in /etc/kubernetes/manifests/etcd.yaml
+            image: k8s.gcr.io/etcd:3.3.15-0    
+            env:
+            - name: ETCDCTL_API
+              value: "3"
+            args: ["/bin/sh", "-c", "etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt --key=/etc/kubernetes/pki/etcd/healthcheck-client.key snapshot save /backup/etcd-snapshot-$(date +%Y-%m-%d_%H:%M:%S_%Z).db"]
+            volumeMounts:
+              - mountPath: /etc/kubernetes/pki/etcd
+                name: etcd-certs
+                readOnly: true
+              - mountPath: /backup
+                name: backup-vol
+              - mountPath: /etc/localtime:ro 
+                name: date-vol                # this will ensure that host time is used
+          restartPolicy: OnFailure
+          nodeSelector:
+            kubernetes.io/hostname: dev-master-001
+          tolerations:
+          - effect: NoSchedule
+            operator: Exists
+          hostNetwork: true
+          volumes:
+          - name: date-vol                    # Set the host time 
+            hostPath:
+                path: /etc/localtime
+          - name: backup-vol
+            persistentVolumeClaim:
+              claimName: backup-calim
+          - name: etcd-certs
+            hostPath:
+              path: /etc/kubernetes/pki/etcd
+              type: DirectoryOrCreate
+          
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    volume: etcd
+  name: backup-calim
+  namespace: kube-system
+spec:
+  storageClassName: hostpath
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+          
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  labels:
+    volume: etcd
+  name: backup-etcd
+spec:
+  storageClassName: hostpath
+  accessModes: [ "ReadWriteMany" ]
+  capacity:
+    storage: 5Gi
+  persistentVolumeReclaimPolicy: Delete
+  hostPath:
+    path: "/nfs/shares/ETCD_BACKUPS/dev_ETCD" 
+
+
+## Dynamic NFS pvc
+# ---
+# kind: PersistentVolumeClaim
+# apiVersion: v1
+# metadata:
+#   name: backup-claim
+#   annotations:
+#     volume.beta.kubernetes.io/storage-class: "nfs-client"
+#   namespace: kube-system
+# spec:
+#   accessModes: [ "ReadWriteMany" ]
+#   resources:
+#     requests:
+#       storage: 1Gi
+        
+
