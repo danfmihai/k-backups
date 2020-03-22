@@ -22,13 +22,12 @@ To change configuration do edit the cronjob or make changes to definiton files a
 ```
 kubectl edit cronjob -n kube-system etcd-cleanup
 kubectl edit cronjob -n kube-system backup
-```
 or
-```
 kubectl apply -f etcd_backup.yaml
 kubectl apply -f etcd_cleanup.yaml
 ```
 To delete the cronjob:
+```
 kubectl delete -f etcd_backup.yaml
 kubectl delete -f etcd_cleanup.yaml
 ```
@@ -36,6 +35,7 @@ or
 ```
 kubectl delete cronjob backup -n kube-system
 kubectl delete cronjob etcd-cleanup -n kube-system
+```
 
 
 Reference links:
