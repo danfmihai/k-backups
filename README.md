@@ -30,9 +30,7 @@ To delete the cronjob:
 ```
 kubectl delete -f etcd_backup.yaml
 kubectl delete -f etcd_cleanup.yaml
-```
 or
-```
 kubectl delete cronjob backup -n kube-system
 kubectl delete cronjob etcd-cleanup -n kube-system
 ```
