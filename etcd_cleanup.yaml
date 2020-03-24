@@ -1,5 +1,5 @@
 #######
-# This Job will delete older ETCD backups, see line 16 for more details
+# This Job will delete older ETCD backups, see args line for more details
 #######
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -30,7 +30,7 @@ spec:
           volumes:
           - name: date-vol
             hostPath:
-                path: /etc/localtime
+              path: /etc/localtime
           - name: etcd-bakups
             hostPath:
               path: /nfs/shares/ETCD_BACKUPS/dev_ETCD
